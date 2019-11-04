@@ -30,7 +30,7 @@ public abstract class Agent : MonoBehaviour
 
     }
 
-    bool Move(int row, int column)
+    /*bool Move(int row, int column)
     {
         //The following are true:
         //The agent moves to an empty tile
@@ -62,5 +62,5 @@ public abstract class Agent : MonoBehaviour
 
         }
         return false;
-    }
+    }*/
 }

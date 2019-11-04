@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
 	public Tilemap resourceTileHolder;
 	public Camera mycam;
 	
-	private int monster = 0;
+	private int monster = 6;
 	private int level = 1;
 	
     // Initialization

@@ -111,12 +111,12 @@ public class BoardManager : MonoBehaviour
 	private List <Tile> enemyCities;
 	private List <Tile[]> resourceList;
 
-	public struct TileData(bool GhostBarrier, int resourceAmount, int BarrierHP) : this()
+	/*public struct TileData(bool GhostBarrier, int resourceAmount, int BarrierHP) : this()
 	{
 		GhostBarrier = false;
 		resourceAmount = 0;
 		BarrierHP = 0;
-	}
+	}*/
 	
 	public class HexTileKey
 	{
@@ -345,7 +345,7 @@ public class BoardManager : MonoBehaviour
 				halfway = Col/2;
 			Row -= halfway;
 			newTile = new Vector3Int(Row, Col, Dist);
-			//Debug.Log("Human City Row and Column: " + Row + " " + Col);
+			Debug.Log("Tile Row and Column: " + Row + " " + Col);
 			GGG_Tilemap.SetTile(newTile, InstantiateMe);	
 			return newTile;
 		//}
@@ -824,15 +824,20 @@ public class BoardManager : MonoBehaviour
 					
 				newSetOfTiles.Add(poppedWall.getHexKey(), poppedWall);
 				InMaze.Add(newSetOfTiles);	
-				//resourceTileHolder.SetTile(new Vector3Int(poppedWall.getHexKey().row, poppedWall.getHexKey().column, 0), null);
+				int rowValue = poppedWall.getHexKey().row;
+				int columnValue = poppedWall.getHexKey().column;
+				Vector3Int tempPosition = new Vector3Int(rowValue, columnValue, 0);
 				
-				TileData tempData = new TileData();
-				Vector3Int tempPosition = new Vector3Int(poppedWall.getHexKey().row, poppedWall.getHexKey().column, 0);
+				Debug.Log("Tile Removed Row and Column: " + rowValue + " " + columnValue);
+				resourceTileHolder.SetTile(tempPosition, null);
+				resourceTileHolder.RefreshTile(tempPosition);
+				
+				//TileData tempData = new TileData();
 				//ITilemap resourceTileHolderI = GGG_Board.GetComponentsInChildren<ITilemap>().ElementAt(0);
-				ITilemap resourceTileHolderI = null;
+				//ITilemap resourceTileHolderI = null;
 				//resourceTileHolderI = GGG_Board.GetComponentsInChildren<ITilemap>().ElementAt(0);
-				resourceTileHolder.GetTile(tempPosition).GetTileData(tempPosition, resourceTileHolderI, ref tempData);
-				tempData.gameObject.SetActive(false);
+				//resourceTileHolder.GetTile(tempPosition).GetTileData(tempPosition, resourceTileHolderI, ref tempData);
+				//tempData.gameObject.SetActive(false);
 				//Tile example = new Tile();
 				//example.gameObject.SetActive(false);
 			

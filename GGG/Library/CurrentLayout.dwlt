@@ -73,7 +73,7 @@ MonoBehaviour:
   m_MinSize: {x: 234, y: 494}
   m_MaxSize: {x: 10004, y: 14044}
   vertical: 1
-  controlID: 128
+  controlID: 89
 --- !u!114 &4
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -145,7 +145,7 @@ MonoBehaviour:
   m_MinSize: {x: 713, y: 494}
   m_MaxSize: {x: 18008, y: 14044}
   vertical: 0
-  controlID: 148
+  controlID: 129
 --- !u!114 &7
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -191,7 +191,7 @@ MonoBehaviour:
   m_MinSize: {x: 202, y: 444}
   m_MaxSize: {x: 4002, y: 8044}
   vertical: 1
-  controlID: 58
+  controlID: 130
 --- !u!114 &9
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -462,8 +462,7 @@ MonoBehaviour:
   m_LastFolders:
   - Assets/Scripts
   m_LastFoldersGridSize: 16
-  m_LastProjectPath: C:\Users\Jim\Desktop\Programming\Projects\GGG - Ghouls, Ghosts,
-    & Goblins
+  m_LastProjectPath: C:\Users\Jim\Desktop\Programming\Projects\GGG
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
@@ -525,7 +524,7 @@ MonoBehaviour:
   m_ListAreaState:
     m_SelectedInstanceIDs: 
     m_LastClickedInstanceID: 0
-    m_HadKeyboardFocusLastEvent: 0
+    m_HadKeyboardFocusLastEvent: 1
     m_ExpandedInstanceIDs: 00000000ca390000963c0000202b0000282e00004e2c0000de2b0000182b00004e2d0000e82d0000cc2a0000e42e0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
@@ -670,9 +669,9 @@ MonoBehaviour:
   m_PlayAudio: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: 7.214831, y: 4.518715, z: -140.42174}
+    m_Target: {x: 33.47626, y: 2.1016512, z: -144.94336}
     speed: 2
-    m_Value: {x: 7.214831, y: 4.518715, z: -140.42174}
+    m_Value: {x: 33.47626, y: 2.1016512, z: -144.94336}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -705,9 +704,9 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: 0, y: 0, z: 0, w: 1}
   m_Size:
-    m_Target: 9.598405
+    m_Target: 5.856448
     speed: 2
-    m_Value: 9.598405
+    m_Value: 6.132406
   m_Ortho:
     m_Target: 1
     speed: 2

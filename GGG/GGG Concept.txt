@@ -1,0 +1,134 @@
+GGG - Ghouls, Ghosts, & Goblins
+	1. Story
+		i. Human Village defends itself from hordes of GGG.
+	2. Gameboard
+		i. Generated each level
+		ii. Hex tiles for movement and resources
+		iii. Tiles
+			a. Human Village
+			b. Ghoul Village
+			c. Ghost Village
+			d. Goblin Village
+			e. Plains
+				1. Open for walking, placing barriers, No resources
+			f. Resources - Upgrade human village and purchasing of hunters
+				1. Forest
+				2. Sunstones
+				3. Holy Water Pools
+				4. Mithril Ore
+			g. Barriers
+				1. Ghoul Barrier (Small resources needed, small HP)
+				2. Ghost Barrier (Small resources needed, small HP)
+				3. Goblin Barrier (Small resources needed, small HP)
+				4. Ghoul & Ghost Barrier (Medium resources needed, Medium HP)
+				5. Ghoul & Goblin Barrier (Medium resources needed, Medium HP)
+				6. Ghost & Goblin Barrier (Medium resources needed, Medium HP)
+				7. GGG Barrier (Large resources needed, Large HP)
+			h. Outer Walls/Impassable
+				1. Mountains
+			i. Fog of War
+				1. Default On
+				2. Covers entire map
+				3. Human agent removes FOW
+					a. How far of removal?
+					b. Does FOW return? 
+	3. Player
+		i. In charge of protecting the human village.
+			a. Human Village
+				1. Center of the map
+				2. Number of Humans increase per level
+				3. Technology upgrades per level
+			b. Not in direct control of the humans
+				1. Placing barriers
+				2. Marking resources for gathering
+				3. Marking areas of danger
+				4. Hiring Human hunters
+					i. Hunt Standard - Level 1 Hunter
+					ii. Hunt Trappers - Level 2 Hunter
+					iii. Hunt Hunters? - Level 3 Hunter
+		ii. After getting to a certain level, able to return to said level
+			a. Resource locations change
+			b. Number of enemies, resources, humans, and technologies remain
+		iii. Save & Load
+	4. Enemies
+		i. Ghouls
+			a. Standard
+			b. Trapper
+			c. Hunter (?)
+		ii. Ghosts
+			a. Standard
+			b. Trapper
+			c. Hunter (?)
+		iii. Goblins
+			a. Standard
+			b. Trapper
+			c. Hunter (?)
+	5. UI
+		i. Tile Submenus
+		ii. Camera movement
+		iii. Title Screen
+		iv. Game Over
+		v. Level Select Screen
+		vi. Save Screen
+		vii. Loading Screen
+		viii. Human Submenus
+	6. Sounds
+		i. Going to need help. 
+		ii. Sounds for each:
+			a. Title Screen Music
+			b. Title Screen SFX
+			c. Game Over Music
+			d. Game Over SFX
+			e. Game Play Music
+			f. Enemy SFX
+				1. Ghoul
+					i. Each Type? (Standard, Trapper, Hunter (?))
+				2. Ghost
+					i. Each Type?
+				3. Goblin
+					i. Each Type?
+			g. Human SFX
+				1. Barrier Construction
+				2. Hunter Hiring
+				3. Technology Upgrade Screen Music/SFX
+				4. AI Fear
+				5. Ready for Work
+				6. Resource Gathering
+			h. Level Win Music
+			j. Banner SFX (gathering & danger)
+	7. Animations/Graphics
+		i. I'm going to need help. I have to find graphics and animations for the following:
+		ii. Humans
+			a. Movement
+			b. Idle
+			c. Gathering
+			d. Construction
+			e. Hunting
+			f. Fear/Running
+			g. Caught in Trap
+			h. Win Animation (extra)
+		iii. Enemies
+			a. Movement
+			b. Idle
+			c. Hunting
+			d. Trapping
+			e. Carrying
+			f. Death
+		iv. Resources
+			a. Full
+			b. Partial
+			
+GGG Horror?
+Node:
+	Path North West
+	Path North East
+	Path West
+	Path East
+	Path South West 
+	Path South East
+	IsResource
+	
+Include in Credits:
+	EpicMice
+	
+http://56gamestudios.com/blog/2017/06/getting-started-with-visual-studio-code/

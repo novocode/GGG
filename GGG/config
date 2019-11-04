@@ -1,0 +1,5 @@
+[user]
+	name = Jim
+	email = novocode@gmail.com
+[core]
+	autocrlf = true

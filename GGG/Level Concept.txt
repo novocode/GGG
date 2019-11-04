@@ -1,0 +1,64 @@
+Ghouls - Level 0, 1
+	Standard - Level 0, 2
+	Trappers - Level 0, 3
+	Hunters - Level 0, 4
+	Flood - Level 0, 5 ?
+Ghosts - Level 1, 1
+	Standard - Level 1, 2
+	Trappers - Level 1, 3
+	Hunters - Level 1, 4
+	Flood - Level 1, 5 ?
+Goblins - Level 2, 1
+	Standard - Level 2, 2
+	Trappers - Level 2, 3
+	Hunters - Level 2, 4
+	Flood - Level 2, 5 ?
+Ghouls & Ghosts - Level 3, 1
+	Standard - Level 3, 2
+	Trappers - Level 3, 3
+	Hunters - Level 3, 4
+	Flood - Level 3, 5 ?
+Ghosts & Goblins - Level 4, 1
+	Standard - Level 4, 2
+	Trappers - Level 4, 3
+	Hunters - Level 4, 4
+	Flood - Level 4, 5 ?
+Ghouls & Goblins - Level 5, 1
+	Standard - Level 5, 2
+	Trappers - Level 5, 3
+	Hunters - Level 5, 4
+	Flood - Level 5, 5 ?
+Ghouls, Ghosts, & Goblins - Level 6, 1
+	Standard - Level 6, 2
+	Trappers - Level 6, 3
+	Hunters - Level 6, 4
+	Flood - Level 6, 5 ?
+Player Choice: ?
+
+Board setup:
+	1. Outer Walls & floor
+	2. Placement of Cities
+	3. Resources on ALL floor tiles
+	4. Prim's Algorithm to clear some resources.
+		a. This will allow a path between all cities and resources
+		
+	1 Start with a grid full of resources.
+    2 Pick a cell, mark it as part of the maze. Add the resources of the cell to the resource list.
+    3 While there are resources in the list:
+        a Pick a random resource from the list. If only one of the two cells that the resource divides is visited, then:
+            i Make the resource a passage and mark the unvisited cell as part of the maze.
+            ii Add the neighboring resources of the cell to the resource list.
+        b Remove the resource from the list.
+		
+	Problems:
+		1. Based on the Hexagonal Grid, how do I determine that (5,1), (4,2), (3,3), (2,4), (1,5) are outerwalls? Especially when Length varies. - DONE
+		2. Prim has function to handle unvisitedDirections 
+			a. Need to translate that to Unity
+		3. Need to merge Direction script with Hexagonal Grid... somehow
+		4. Need to determine neighboring tiles with each other, for their example grid.neighbor()
+		5. Need to add unvisited neighbors to priorityQueue.
+		6. Translate all into Unity code
+		
+http://gamelogic.co.za/grids/features/examples-that-ship-with-grids/prims-maze-generation-algorithm-on-a-hexagonal-grid/
+
+https://www.gamasutra.com/blogs/HermanTulleken/20161005/282629/Algorithms_for_making_more_interesting_mazes.php

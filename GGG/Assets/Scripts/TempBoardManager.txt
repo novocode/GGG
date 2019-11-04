@@ -1,0 +1,641 @@
+5. Need a border around tiles - need to fix - minor
+7. Camera not centered on human city - need to fix
+	a. Based on camera positioning, instead of 21.5 & 17.5, it should be 22 & 13 for city center
+		i. Most likely a problem between tile coords and camera coords.
+8. Will the coords set in GGG_Board be the same as the other tilemaps?
+	Flipping the coords for one, might not work for the others.
+10. Camera tracking mouse/finger movements, centered at beginning of game to be on top of human city.
+12. InMaze has an extra value added that shouldn't be there.
+14. resourceTileHolder is not removing tiles. Could it be different coords? Or could it be that once placed, 
+	resources cannot be removed?
+		a. Once placed, cannot remove tile.
+			i. I would have to replace the entire map, EACH time there is a change to the map.
+				1. Completely deleting the tilemap, and restoring ALL the values and amounts that were available prior.
+				2. https://pastebin.com/jh8vaW5j
+				3. https://forum.unity.com/threads/how-do-i-get-itilemap-to-pass-by-reference.767837/
+15. How do I overload the tiledata in Unity3D?
+	a. Might need to add additional information to the tiles.
+	b. Can I add an object to the tiledata?
+
+Problems completed (for now):
+1. Size of tiles - need to fix
+	Horizontal was okay with 443, but not vertical
+2. Alignment of tiles - DONE
+	a. We have to flip the y value
+	b. Centering the x values
+		i. Flipping x and y does NOTHING to the alignment. WHY?
+3. Dispersion of resources - NON-ISSUE, it was already dispersing the resources evenly. Lower right to upper left
+4. Fix tile coordinates - DONE
+	Mean that the tiles are not arranged in a pyramid.
+6. Missing enemy cities have no floor tiles - DONE
+9. Human city is not matching with the centroid - DONE sort of, still slightly off
+	Human city was slightly off from centroid when using monster=3, level = 1
+11. Prim's doesn't work with multiple starting points, would create individual mazes for each point, no connection between them. 
+	a. Maybe Kruskal's algorithm would be a good substitution. - Need to debug
+13. Values passed into InMaze is by reference, not by value. This leads to deletion of data from Clear(). Figure out how to pass by value from a dictionary to list. 
+
+https://gamedev.stackexchange.com/questions/169700/how-can-i-change-a-sprite-used-for-a-unity-tilemap-tile-at-runtime
+https://forum.unity.com/threads/how-to-add-behaviors-to-a-tileasset.526036/
+https://social.msdn.microsoft.com/Forums/en-US/560ca9d9-1ef3-4aae-b0a7-aa029da66b99/c-structs-constructor-overloading?forum=csharplanguage
+
+------------------------------------------------------------------
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+//using System.Math;
+
+//https://www.redblobgames.com/grids/hexagons/
+//http://gojko.github.io/hexgridwidget/
+//https://www.quora.com/What-is-the-centre-of-mass-of-an-equilateral-triangular-lamina-having-side-length-l
+// See above website for information
+// Need to apply Pythagorean theorem to find centroid of triangle
+// a^2 + b^2 = c^2
+// Need to find c for the amount of rows
+// a^2 = (L/2)^2
+// b^2 = x^2 = ((L*sqr(3))/6)^2
+// (L/2)^2 + ((L*sqr(3))/6)^2 = c^2
+// c = sqr((L/2)^2 + ((L*sqr(3))/6)^2)
+// example: L = 15
+// c = sqr((15/2)^2 + ((15*sqr(3))/6)^2)
+// c = sqr((7.5)^2 + ((15*1.7320508075688772935274463415059‬)/6)^2)
+// c = sqr((7.5)^2 + ((25.980762113533159402911695122588‬)/6)^2)
+// c = sqr(56.25 + (4.3301270189221932338186158537647‬)^2)
+// c = sqr(56.25 + 18.75)
+// c = sqr(75)
+// c = 8.6602540378443864676372317075294 (I need at least 9 or 10 based on the length of 15.)
+// So do I round up?
+
+//Randomized Kruskal's algorithm - Maze generation for resource layout
+//Randomized Prim's algorithm
+//https://en.wikipedia.org/wiki/Maze_generation_algorithm
+
+//Look up Brackeys on Youtube for later
+//https://www.youtube.com/watch?v=ryISV_nH8qw
+
+public class BoardManager : MonoBehaviour
+{
+	[HideInInspector]
+	//public Hashtable<HexTileKey, HexTile> boardGrid;
+	public Dictionary<HexTileKey, HexTile> boardGrid;
+	public Dictionary<HexTileKey, HexTile> primGrid;
+	//private Transform boardHolder;
+	private Transform baseTileHolder;
+	private Transform resourceTileHolder;
+	
+	public Camera mainCamera;
+	
+	//private int columns;
+	//private int rows;
+	// Columns and rows were the same, changing it to Length
+	private int Length;
+	private int numOfEnemies;
+	
+	//General Tiles
+	public GameObject[] floorTiles;
+	public GameObject[] outerWallTiles;
+	//Resource Tiles
+	public GameObject[] forestTiles;
+	public GameObject[] sunstoneTiles;
+	public GameObject[] holyWaterPoolTiles;
+	public GameObject[] mithrilOreTiles;
+	//City Tiles
+	public GameObject humanCityTile;
+	public GameObject ghoulCityTile;
+	public GameObject ghostCityTile;
+	public GameObject goblinCityTile;
+	
+	//Ghoul Enemy Tiles
+	private GameObject[] ghoulStandardTiles;
+	private GameObject[] ghoulTrapperTiles;
+	private GameObject[] ghoulHunterTiles;
+	//Ghost Enemy Tiles
+	private GameObject[] ghostStandardTiles;
+	private GameObject[] ghostTrapperTiles;
+	private GameObject[] ghostHunterTiles;
+	//Goblin Enemy Tiles
+	private GameObject[] goblinStandardTiles;
+	private GameObject[] goblinTrapperTiles;
+	private GameObject[] goblinHunterTiles;
+	
+	private bool humanTileSet;
+	//private bool ghoulTileSet;
+	//private bool ghostTileSet;
+	//private bool goblinTileSet;
+	private List <GameObject> enemyCities;
+	private List <GameObject[]> resourceList;
+	
+	public class HexTileKey
+	{
+		private int row;
+		private int column;		
+		
+		public HexTileKey()
+		{
+			row = -1;
+			column = -1;
+		}
+		
+		public int getRow()
+		{
+			return row;
+		}
+		
+		public int getColumn()
+		{
+			return column;
+		}
+		
+		public void setRow(int rownum)
+		{
+			row = rownum;
+		}
+		
+		public void setColumn(int columnnum)
+		{
+			column = columnnum;
+		}		
+	}
+	
+	public class HexTile
+	{
+		private HexTileKey theKey;
+		private HexTileKey edgeNorthWest;
+		private HexTileKey edgeNorthEast;
+		private HexTileKey edgeWest;
+		private HexTileKey edgeEast;
+		private HexTileKey edgeSouthWest;
+		private HexTileKey edgeSouthEast;
+		private Vector3 vectorValue;
+		private bool visited;
+		
+		public HexTile()
+		{
+			theKey = new HexTileKey();
+			edgeNorthWest = new HexTileKey();
+			edgeNorthEast = new HexTileKey();
+			edgeWest = new HexTileKey();
+			edgeEast = new HexTileKey();
+			edgeSouthWest = new HexTileKey();
+			edgeSouthEast = new HexTileKey();
+			visited = false;
+		}
+		
+		public bool getVisited()
+		{
+			return visited;
+		}
+		
+		private void setVisited()
+		{
+			visited = true;
+		}
+		
+		private void clearVisited()
+		{
+			visited = false;
+		}
+		
+		public HexTileKey getHexKey()
+		{
+			return theKey;
+		}
+		
+		public HexTileKey getEdgeNorthWest()
+		{
+			return edgeNorthWest;
+		}
+		
+		public HexTileKey getEdgeNorthEast()
+		{
+			return edgeNorthEast;
+		}
+		
+		public HexTileKey getEdgeWest()
+		{
+			return edgeWest;
+		}
+		
+		public HexTileKey getEdgeEast()
+		{
+			return edgeEast;
+		}
+		
+		public HexTileKey getEdgeSouthWest()
+		{
+			return edgeSouthWest;
+		}
+		
+		public HexTileKey getEdgeSouthEast()
+		{
+			return edgeSouthEast;
+		}
+		
+		public Vector3 getvectorValue()
+		{
+			return vectorValue;
+		}
+		
+		public void setHexKey(HexTileKey key)
+		{
+			theKey = key;
+		}
+		
+		public void setEdgeNorthWest(int edgeNorthWestRow, int edgeNorthWestColumn)
+		{		
+			edgeNorthWest.setRow(edgeNorthWestRow);
+			edgeNorthWest.setColumn(edgeNorthWestColumn);
+		}
+		
+		public void setEdgeNorthEast(int edgeNorthEastRow, int edgeNorthEastColumn)
+		{
+			edgeNorthEast.setRow(edgeNorthEastRow);
+			edgeNorthEast.setColumn(edgeNorthEastColumn);
+		}
+		
+		public void setEdgeWest(int edgeWestRow, int edgeWestColumn)
+		{
+			edgeWest.setRow(edgeWestRow);
+			edgeWest.setColumn(edgeWestColumn);
+		}
+		
+		public void setEdgeEast(int edgeEastRow, int edgeEastColumn)
+		{
+			edgeEast.setRow(edgeEastRow);
+			edgeEast.setColumn(edgeEastColumn);
+		}
+		
+		public void setEdgeSouthWest(int edgeSouthWestRow, int edgeSouthWestColumn)
+		{
+			edgeSouthWest.setRow(edgeSouthWestRow);
+			edgeSouthWest.setColumn(edgeSouthWestColumn);
+		}
+		
+		public void setEdgeSouthEast(int edgeSouthEastRow, int edgeSouthEastColumn)
+		{
+			edgeSouthEast.setRow(edgeSouthEastRow);
+			edgeSouthEast.setColumn(edgeSouthEastColumn);
+		}
+		
+		public void setVectorValue(float vectorValueX, float vectorValueY)
+		{
+			vectorValue = new Vector3(vectorValueX,vectorValueY,0f);
+		}
+	}
+	
+	public BoardManager()
+	{
+		boardGrid = new Dictionary<HexTileKey, HexTile>();
+		//columns = 13;
+		//rows = 13;
+		Length = 13;
+		humanTileSet = false;
+		//ghoulTileSet = true;
+		//ghostTileSet = true;
+		//goblinTileSet = true;
+	}
+	
+	~BoardManager()
+	{
+		boardGrid.Clear();		
+	}
+	
+	//Camera initialization could not be placed in the constructor. Must be in "Awake" or "Start"
+	public void Awake()
+	{
+		mainCamera = Camera.main;		
+	}
+	
+	private void setLength(int value)
+	{
+		Length = value;
+	}
+	
+	private int getLength()
+	{
+		return Length;
+	}
+	
+	private void setTileParent(GameObject InstantiateMe, int Row, int Col, Transform GGG_Tilemap)
+	{			
+		GameObject instance = GameObject.Instantiate(InstantiateMe, new Vector3(Row,Col,0f), Quaternion.identity);
+		
+		instance.transform.SetParent(GGG_Tilemap);		
+	}
+	
+	private void BoardSetup(int cityLevel)
+	{
+		//Debug.Log("Test2");
+		//boardHolder = new GameObject("GGG_Board").transform;
+		baseTileHolder = new GameObject("Tilemap_BaseBoard").transform;
+		resourceTileHolder = new GameObject("Tilemap_Resources").transform;
+		int distanceToHCity = FindHumanCity();
+		int enemiesLeft = numOfEnemies;
+		int numOfResources = 0;
+		int numEnemyTileLeft = 3;
+						
+		//May need to change to foreach loop(s)
+		foreach(HexTile hexValue in boardGrid.Values)
+		{		
+			GameObject toInstantiate = null;
+			//HexTile ht = (HexTile)hexValue;
+			int x = hexValue.getHexKey().getRow();
+			int y = hexValue.getHexKey().getColumn();
+			//Debug.Log("Each Hex Row and Column: " + x + " " + y);
+			
+			//Outerwalls - TESTING DONE, place tiles!
+			if(x == Length-1 || y == Length-1 || (x == Length-y-1))
+			{				
+				toInstantiate = outerWallTiles[Random.Range (0, outerWallTiles.Length)];
+				setTileParent(toInstantiate, x, y, baseTileHolder);
+			}
+			//Corner check for each city - Enemy Bases
+			//First enemy City: Top Corner: Position(Length-2, 2)
+			//Second enemy City: Bottom-Left: Position(2, Length-2)
+			//Third enemy City: Bottom-Right: Position(Length-2, Length-2)
+			//TESTING DONE, place tiles!
+			else if ((x == 2 && y == Length-x) || (x == Length-2 && y == 2) || (x == Length-2 && y == Length-2))
+			{
+				switch(numOfEnemies) // Prep for monster cities
+				{
+					case 1:
+					{
+						if(enemiesLeft > 0 && (Random.Range (0, 100) > 49 || enemyCities.Count == numEnemyTileLeft))
+						{
+							if(enemiesLeft > 0)
+							{
+								toInstantiate = enemyCities[Random.Range (0, enemyCities.Count)];
+								setTileParent(toInstantiate, x, y, baseTileHolder);
+								enemyCities.Remove(toInstantiate);
+								enemiesLeft -= 1;
+							}
+							else //If no enemy cities are left, use floor and resource
+							{
+								toInstantiate = floorTiles[Random.Range (0, floorTiles.Length)];
+								setTileParent(toInstantiate, x, y, baseTileHolder);
+								toInstantiate = forestTiles[Random.Range (0, floorTiles.Length)];	
+								setTileParent(toInstantiate, x, y, resourceTileHolder);								
+							}
+						}
+						numEnemyTileLeft -= 1;
+						break;
+					}
+					case 2:
+					{		
+						if(enemiesLeft > 0 && (Random.Range (0, 100) > 49 || enemyCities.Count == numEnemyTileLeft))
+						{			
+							if(enemiesLeft > 0)
+							{	
+								toInstantiate = enemyCities[Random.Range (0, enemyCities.Count)];
+								setTileParent(toInstantiate, x, y, baseTileHolder);
+								enemyCities.Remove(toInstantiate);	
+								enemiesLeft -= 1;						
+							}	
+							else //If no enemy cities are left, use floor and resource
+							{
+								toInstantiate = floorTiles[Random.Range (0, floorTiles.Length)];
+								setTileParent(toInstantiate, x, y, baseTileHolder);
+								toInstantiate = forestTiles[Random.Range (0, floorTiles.Length)];	
+								setTileParent(toInstantiate, x, y, resourceTileHolder);								
+							}	
+						}	
+						numEnemyTileLeft -= 1;		
+						break;				
+					}
+					case 3:
+					{
+						toInstantiate = enemyCities[Random.Range (0, enemyCities.Count)];
+						setTileParent(toInstantiate, x, y, baseTileHolder);
+						enemyCities.Remove(toInstantiate);
+						break;
+					}
+				}
+			}
+			//HumanCity Center location
+			//HumanCity: int value = FindHumanCity(); Position(value, value)
+			//TESTING DONE, place tiles!
+			else if (x == distanceToHCity && y == distanceToHCity)
+			{
+				if(!humanTileSet)
+				{
+					toInstantiate = humanCityTile;
+					setTileParent(toInstantiate, x, y, baseTileHolder);
+					Debug.Log("Hex Row and Column: " + x + " " + y);
+					mainCamera.gameObject.transform.position = new Vector3(x, y, -20);
+					humanTileSet = true;
+				}			
+			}
+			//Resources Check
+			else 
+			{
+				toInstantiate = floorTiles[Random.Range (0, floorTiles.Length)];
+				setTileParent(toInstantiate, x, y, baseTileHolder);
+				GameObject [] temp = null;
+				
+				switch(numOfResources) // Prep for resources
+				{
+					case 0:
+					{
+						temp = resourceList[numOfResources];
+						toInstantiate = temp[Random.Range (0, temp.Length)];	
+						setTileParent(toInstantiate, x, y, resourceTileHolder);
+						numOfResources++;
+						break;
+					}
+					case 1:
+					{
+						temp = resourceList[numOfResources];
+						toInstantiate = temp[Random.Range (0, temp.Length)];	
+						setTileParent(toInstantiate, x, y, resourceTileHolder);
+						if(numOfResources == numOfEnemies)
+							numOfResources = 0;
+						else
+							numOfResources++;
+						break;
+					}
+					case 2:
+					{
+						temp = resourceList[numOfResources];
+						toInstantiate = temp[Random.Range (0, temp.Length)];	
+						setTileParent(toInstantiate, x, y, resourceTileHolder);
+						if(numOfResources == numOfEnemies)
+							numOfResources = 0;
+						else
+							numOfResources++;
+						break;
+					}
+					case 3:
+					{
+						temp = resourceList[numOfResources];
+						toInstantiate = temp[Random.Range (0, temp.Length)];	
+						setTileParent(toInstantiate, x, y, resourceTileHolder);
+						numOfResources = 0;
+						break;
+					}
+				}
+			}//End Else
+		}//End foreach
+	}
+	
+	private void InitializeList()
+	{
+		//Debug.Log("Test1");
+		boardGrid.Clear();
+		
+		int x = 0;
+		int y;
+		
+		while(x < Length)
+		{
+			y = x + 1;
+			while(y > 0)
+			{			
+				//Debug.Log("Row #: " + x + " Col #: " + y);
+				HexTile hex = new HexTile();
+				HexTileKey hexKey = new HexTileKey();
+				hexKey.setRow(x);	
+				hexKey.setColumn(Length-y);
+				hex.setVectorValue(Length-y, x);
+				hex.setHexKey(hexKey);
+				
+				//Finding the neighbors
+				hex.setEdgeNorthWest(x, Length-y - 1);
+				hex.setEdgeNorthEast(x + 1, Length-y - 1);
+				hex.setEdgeWest(x - 1, Length-y);
+				hex.setEdgeEast(x + 1, Length-y);
+				hex.setEdgeSouthWest(x - 1, Length-y + 1);
+				hex.setEdgeSouthEast(x, Length-y + 1);
+				
+				//boardGrid[hex.getHexKey()] = hex;
+				boardGrid.Add(hex.getHexKey(), hex);
+				y--;
+			}
+			x++;
+		}
+	}
+	
+	private void DetermineBoardSize(int monsters, int level)
+	{
+		//setColumn(columns + monsters*5 + level*2);
+		//setRows(rows + monsters*5 + level*2);
+		setLength(Length + monsters*5 + level*2);
+		//Debug.Log("Monsters is at: " + monsters);
+		//Debug.Log("Level is at: " + level);
+	}
+	
+	public void SetupScene(int monsters, int level)
+	{
+		switch(monsters) // Prep for monster cities
+		{
+			case 0: // Ghouls - Level 0, 1
+			{
+				//ghoulTileSet = false;
+				numOfEnemies = 1; 
+				enemyCities = new List<GameObject>();
+				enemyCities.Add(ghoulCityTile);
+				resourceList = new List<GameObject[]>();
+				resourceList.Add(forestTiles);
+				resourceList.Add(sunstoneTiles);
+				//Debug.Log("This should be tested.");
+				break;
+			}
+			case 1: // Ghosts - Level 1, 1
+			{
+				//ghostTileSet = false;
+				numOfEnemies = 1;
+				enemyCities = new List<GameObject>();
+				enemyCities.Add(ghostCityTile);
+				resourceList = new List<GameObject[]>();
+				resourceList.Add(forestTiles);
+				resourceList.Add(holyWaterPoolTiles);
+				//Debug.Log("This should not be tested.");
+				break;
+			}
+			case 2: // Goblins - Level 2, 1
+			{
+				//goblinTileSet = false;
+				numOfEnemies = 1; 
+				enemyCities = new List<GameObject>();
+				enemyCities.Add(goblinCityTile);
+				resourceList = new List<GameObject[]>();
+				resourceList.Add(forestTiles);
+				resourceList.Add(mithrilOreTiles);
+				//Debug.Log("This should not be tested.");
+				break;
+			}
+			case 3: // Ghouls & Ghosts - Level 3, 1
+			{
+				//ghoulTileSet = false;
+				//ghostTileSet = false;
+				numOfEnemies = 2;
+				enemyCities = new List<GameObject>();
+				enemyCities.Add(ghoulCityTile);
+				enemyCities.Add(ghostCityTile);
+				resourceList = new List<GameObject[]>();
+				resourceList.Add(forestTiles);
+				resourceList.Add(sunstoneTiles);
+				resourceList.Add(holyWaterPoolTiles);
+				//Debug.Log("This should not be tested.");
+				break;
+			}
+			case 4: // Ghosts & Goblins - Level 4, 1
+			{
+				//ghostTileSet = false;
+				//goblinTileSet = false;
+				numOfEnemies = 2;
+				enemyCities = new List<GameObject>();
+				enemyCities.Add(ghostCityTile);
+				enemyCities.Add(goblinCityTile);
+				resourceList = new List<GameObject[]>();
+				resourceList.Add(forestTiles);
+				resourceList.Add(holyWaterPoolTiles);
+				resourceList.Add(mithrilOreTiles);
+				//Debug.Log("This should not be tested.");
+				break;
+			}
+			case 5: // Ghouls & Goblins - Level 5, 1
+			{
+				//ghoulTileSet = false;
+				//goblinTileSet = false;
+				numOfEnemies = 2;
+				enemyCities = new List<GameObject>();
+				enemyCities.Add(ghoulCityTile);
+				enemyCities.Add(goblinCityTile);
+				resourceList = new List<GameObject[]>();
+				resourceList.Add(forestTiles);
+				resourceList.Add(sunstoneTiles);
+				resourceList.Add(mithrilOreTiles);
+				//Debug.Log("This should not be tested.");
+				break;
+			}
+			case 6: // Ghouls, Ghosts, & Goblins - Level 6, 1
+			{
+				//ghoulTileSet = false;
+				//ghostTileSet = false;
+				//goblinTileSet = false;
+				numOfEnemies = 3;
+				enemyCities = new List<GameObject>();
+				enemyCities.Add(ghoulCityTile);
+				enemyCities.Add(ghostCityTile);
+				enemyCities.Add(goblinCityTile);
+				resourceList = new List<GameObject[]>();
+				resourceList.Add(forestTiles);
+				resourceList.Add(sunstoneTiles);
+				resourceList.Add(holyWaterPoolTiles);
+				resourceList.Add(mithrilOreTiles);
+				//Debug.Log("This should not be tested.");
+				break;
+			}
+		}
+		
+		DetermineBoardSize(monsters, level);
+		InitializeList();
+		BoardSetup(monsters);		
+	}
+	
+	private int FindHumanCity()
+	{
+		//Debug.Log("Finding Human City");
+		return(Mathf.CeilToInt(Mathf.Sqrt(Mathf.Pow(Length/2.0f,2) + Mathf.Pow((Length*Mathf.Sqrt(3))/6.0f,2))));
+	}
+}

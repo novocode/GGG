@@ -347,6 +347,7 @@ public class BoardManager : MonoBehaviour
 			newTile = new Vector3Int(Row, Col, Dist);
 			Debug.Log("Tile Row and Column: " + Row + " " + Col);
 			GGG_Tilemap.SetTile(newTile, InstantiateMe);	
+			GGG_Tilemap.RefreshTile(newTile);
 			return newTile;
 		//}
 		//GameObject instance = GameObject.Instantiate(InstantiateMe, new Vector3(Row,Col,Dist), Quaternion.identity);
@@ -743,6 +744,7 @@ public class BoardManager : MonoBehaviour
 		Dictionary<HexTileKey, HexTile> tempDictionary = null;
 		int count = KruskalGrid.Count;
 		bool remainWall;
+		int showRemainingWalls = 0;
 		
 		do
 		{
@@ -753,7 +755,7 @@ public class BoardManager : MonoBehaviour
 			
 			int switchPopped = 0;
 				
-			int [] setCount = new int[InMaze.Count];
+			List<int> setCount = new List<int>(new int[InMaze.Count]);
 			do
 			{
 				poppedNeighbor = null;
@@ -789,13 +791,19 @@ public class BoardManager : MonoBehaviour
 				int row = poppedNeighbor.row;
 				foreach(Dictionary<HexTileKey, HexTile> tempDict in InMaze)
 				{
-					if(tempDict.Keys.ElementAt(0).Equals(poppedNeighbor))
-					//if(tempDict.Keys.Equals(poppedNeighbor))
+					foreach(HexTileKey checkKey in tempDict.Keys)
 					{
-						if(setCount[i] == 1)
-							remainWall = true;
-						else
-							setCount[i] += 1;					
+						if(checkKey.Equals(poppedNeighbor))
+						//if(tempDict.Keys.Equals(poppedNeighbor))
+						{
+							if(setCount.ElementAt(i).Equals(1))
+							{
+								remainWall = true;
+								showRemainingWalls++;
+							}
+							else
+								setCount[i] += 1;					
+						}
 					}
 					
 					if(remainWall)
@@ -810,11 +818,12 @@ public class BoardManager : MonoBehaviour
 				newSetOfTiles = new Dictionary<HexTileKey, HexTile>();
 				for(int i = 0; i < InMaze.Count; i++)
 				{
-					if(setCount[i] == 1)
+					if(setCount.ElementAt(i).Equals(1))
 					{
 						tempDictionary = InMaze[i];
 						tempDictionary.ToList().ForEach(x => newSetOfTiles.Add(x.Key, x.Value));
 						InMaze.RemoveAt(i);
+						setCount.RemoveAt(i);
 						i--;
 					}
 
@@ -829,8 +838,10 @@ public class BoardManager : MonoBehaviour
 				Vector3Int tempPosition = new Vector3Int(rowValue, columnValue, 0);
 				
 				Debug.Log("Tile Removed Row and Column: " + rowValue + " " + columnValue);
-				resourceTileHolder.SetTile(tempPosition, null);
-				resourceTileHolder.RefreshTile(tempPosition);
+					
+				setTileParent(null, rowValue, columnValue, -1, resourceTileHolder);	
+				//resourceTileHolder.SetTile(tempPosition, null);
+				//resourceTileHolder.RefreshTile(tempPosition);
 				
 				//TileData tempData = new TileData();
 				//ITilemap resourceTileHolderI = GGG_Board.GetComponentsInChildren<ITilemap>().ElementAt(0);
@@ -846,7 +857,8 @@ public class BoardManager : MonoBehaviour
 			
 			KruskalGrid.Remove(poppedWall.getHexKey());
 			count = KruskalGrid.Count;
-		}while(count > 0);				
+		}while(count > 0);	
+		Debug.Log("Remaining walls: " + showRemainingWalls);			
 	}
 	
 	private float CalculateCentroid()
